@@ -231,9 +231,9 @@ export function normalizeManualEditStyles(
       continue;
     }
     if (rawKey === 'lineHeight') {
-      const n = Number(value);
-      if (!Number.isFinite(n) || n <= 0) return { ok: false, error: 'Line height must be a positive number.' };
-      normalized.lineHeight = String(n);
+      const lineHeight = normalizeLineHeightValue(value);
+      if (!lineHeight) return { ok: false, error: 'Line height must be a positive number or px value.' };
+      normalized.lineHeight = lineHeight;
       continue;
     }
     const options = SELECT_STYLE_OPTIONS[rawKey];
@@ -250,6 +250,18 @@ export function normalizeManualEditStyles(
 function normalizePxValue(value: string): string | null {
   if (/^-?\d+(\.\d+)?$/.test(value)) return `${value}px`;
   if (/^-?\d+(\.\d+)?px$/i.test(value)) return value.toLowerCase();
+  return null;
+}
+
+function normalizeLineHeightValue(value: string): string | null {
+  if (/^\d+(\.\d+)?$/.test(value)) {
+    const n = Number(value);
+    return n > 0 ? String(n) : null;
+  }
+  if (/^\d+(\.\d+)?px$/i.test(value)) {
+    const n = Number(value.slice(0, -2));
+    return n > 0 ? value.toLowerCase() : null;
+  }
   return null;
 }
 

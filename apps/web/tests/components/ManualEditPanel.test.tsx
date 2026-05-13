@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
+import { Simulate } from 'react-dom/test-utils';
 import { JSDOM } from 'jsdom';
 import { ManualEditPanel, emptyManualEditDraft, manualEditPatchSummary, normalizeManualEditStyles } from '../../src/components/ManualEditPanel';
 import { emptyManualEditStyles, type ManualEditTarget } from '../../src/edit-mode/types';
@@ -176,12 +177,20 @@ describe('ManualEditPanel', () => {
         lineHeight: '1.4',
       },
     });
+    expect(normalizeManualEditStyles({ lineHeight: '49px' }, { layoutEnabled: true })).toEqual({
+      ok: true,
+      styles: { lineHeight: '49px' },
+    });
   });
 
   it('rejects invalid style values before host preview/persistence', () => {
     expect(normalizeManualEditStyles({ color: 'tomato' }, { layoutEnabled: true })).toEqual({
       ok: false,
       error: 'color must be a hex color.',
+    });
+    expect(normalizeManualEditStyles({ lineHeight: '-1px' }, { layoutEnabled: true })).toEqual({
+      ok: false,
+      error: 'Line height must be a positive number or px value.',
     });
   });
 
@@ -215,6 +224,32 @@ describe('ManualEditPanel', () => {
 
     expect(onError).not.toHaveBeenCalled();
     expect(onStyleChange).not.toHaveBeenCalled();
+  });
+
+  it('accepts edited computed pixel line-height values', () => {
+    const onError = vi.fn();
+    const onStyleChange = vi.fn();
+    renderPanel({
+      onError,
+      onStyleChange,
+      styles: {
+        ...emptyManualEditStyles(),
+        lineHeight: '48.96px',
+      },
+    });
+
+    const lineInput = Array.from(host.querySelectorAll('.cc-row'))
+      .find((row) => row.textContent?.includes('Line'))
+      ?.querySelector('input') as HTMLInputElement | null;
+    if (!lineInput) throw new Error('Line input not found');
+
+    act(() => {
+      lineInput.value = '49px';
+      Simulate.change(lineInput);
+    });
+
+    expect(onError).toHaveBeenCalledWith('');
+    expect(onStyleChange).toHaveBeenCalledWith('hero-title', { lineHeight: '49px' }, 'Style: Hero Title');
   });
 
   it('does not persist unchanged page styles when no target is selected', () => {
