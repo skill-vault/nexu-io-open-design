@@ -66,7 +66,10 @@ test('entry chrome settings menu opens with brand header and no pet rail', async
   await expect(page.getByTestId('entry-star-badge')).toBeVisible();
   await expect(page.getByTestId('entry-use-everywhere-button')).toBeVisible();
   await expect(page.getByTestId('entry-nav-logo')).toBeVisible();
-  await expect(page.getByTestId('recent-projects-strip')).toBeVisible();
+  // First-run home (no projects mocked) should NOT render the
+  // recent-projects rail — it used to render an empty dashed box
+  // that was just visual noise above the plugin gallery.
+  await expect(page.getByTestId('recent-projects-strip')).toHaveCount(0);
   await expect(page.locator('.entry-nav-rail')).toBeVisible();
   await expect(page.getByTestId('entry-nav-new-project')).toBeVisible();
   await expect(page.locator('.entry-brand')).toHaveCount(0);
