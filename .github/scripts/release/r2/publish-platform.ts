@@ -109,7 +109,9 @@ function listFiles(root) {
 
 function uploadReport(reportDirectory) {
   const files = listFiles(reportRoot);
-  if (files.length === 0) return null;
+  if (files.length === 0) {
+    throw new Error(`expected ${platform} release report files in ${reportRoot}`);
+  }
   const reportPrefix = `${versionPrefix}/report/${reportDirectory}`;
   for (const file of files) {
     const relativePath = normalizePath(relative(reportRoot, file));

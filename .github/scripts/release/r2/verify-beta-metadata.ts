@@ -32,6 +32,50 @@ async function head(url) {
   }
 }
 
+function joinUrl(base, path) {
+  return `${base.replace(/\/+$/, "")}/${path}`;
+}
+
+function reportFilesFor(key) {
+  if (key === "mac") {
+    return [
+      "manifest.json",
+      "screenshots/open-design-mac-smoke.png",
+      "suite-result.json",
+      "tools-pack.json",
+      "tools-pack.log",
+      "vitest.log",
+    ];
+  }
+  if (key === "win") {
+    return [
+      "manifest.json",
+      "screenshots/open-design-win-smoke.png",
+      "suite-result.json",
+      "tools-pack.json",
+      "vitest.log",
+    ];
+  }
+  if (key === "linux") {
+    return ["manifest.json", "screenshots/open-design-linux-smoke.png", "vitest.log"];
+  }
+  return [];
+}
+
+async function verifyReport(def, platform) {
+  const expectedFiles = reportFilesFor(def.key);
+  if (expectedFiles.length === 0) return;
+  if (platform.report == null || platform.report.type !== "directory" || platform.report.url == null) {
+    throw new Error(`${def.key} is missing release report metadata`);
+  }
+  if (typeof platform.report.fileCount !== "number" || platform.report.fileCount <= 0) {
+    throw new Error(`${def.key} release report has no files`);
+  }
+  for (const file of expectedFiles) {
+    await head(joinUrl(platform.report.url, file));
+  }
+}
+
 const metadataUrl = required("R2_METADATA_URL");
 const releaseVersion = required("RELEASE_VERSION");
 const metadata = JSON.parse(await fetchText(metadataUrl));
@@ -100,6 +144,7 @@ for (const def of expected) {
   if (platform.r2?.latestManifestUrl != null) {
     await head(platform.r2.latestManifestUrl);
   }
+  await verifyReport(def, platform);
 }
 
 console.log(`verified beta metadata ${metadataUrl} (${metadata.releaseState})`);

@@ -753,12 +753,12 @@ jobs:
 
       - name: Verify R2 beta metadata
         env:
-          R2_METADATA_URL: ${{ steps.r2.outputs.metadata_url }}
+          R2_METADATA_URL: ${{ steps.r2.outputs.version_metadata_url }}
         run: node --experimental-strip-types .github/scripts/release/r2/verify-beta-metadata.ts
 
       - name: Publish summary
         env:
-          R2_METADATA_URL: ${{ steps.r2.outputs.metadata_url }}
+          R2_METADATA_URL: ${{ steps.r2.outputs.version_metadata_url }}
         run: node --experimental-strip-types .github/scripts/release/r2/summary-beta.ts >> "$GITHUB_STEP_SUMMARY"
 
       - name: Cleanup workflow artifacts

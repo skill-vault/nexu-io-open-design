@@ -117,6 +117,7 @@ if (expectedPlatforms.length > 0 && readyPlatforms.length === expectedPlatforms.
 }
 
 const reportUrl = publicUrl(versionPrefix, "report/");
+const latestMetadataUpdated = releaseState === "complete";
 const metadata = {
   assetVersionSuffix,
   baseVersion: required("BASE_VERSION"),
@@ -137,6 +138,7 @@ const metadata = {
   platforms,
   r2: {
     latestMetadataUrl: publicUrl(latestPrefix, "metadata.json"),
+    latestMetadataUpdated,
     latestPrefix,
     publicOrigin,
     report: {
@@ -158,9 +160,14 @@ const metadata = {
 const metadataPath = join(runnerTemp, "release-beta-metadata.json");
 writeFileSync(metadataPath, `${JSON.stringify(metadata, null, 2)}\n`, "utf8");
 upload(metadataPath, `${versionPrefix}/metadata.json`, "application/json; charset=utf-8", "public, max-age=31536000, immutable");
-upload(metadataPath, `${latestPrefix}/metadata.json`, "application/json; charset=utf-8", "public, max-age=60, must-revalidate");
+if (latestMetadataUpdated) {
+  upload(metadataPath, `${latestPrefix}/metadata.json`, "application/json; charset=utf-8", "public, max-age=60, must-revalidate");
+} else {
+  console.log(`left ${metadata.r2.latestMetadataUrl} unchanged because releaseState=${releaseState}`);
+}
 
 setOutput("metadata_url", metadata.r2.latestMetadataUrl);
+setOutput("latest_metadata_updated", String(latestMetadataUpdated));
 setOutput("version_metadata_url", metadata.r2.versionMetadataUrl);
 setOutput("version_prefix", versionPrefix);
 setOutput("report_url", reportUrl);
@@ -178,4 +185,4 @@ for (const [key, platform] of Object.entries(platforms)) {
 
 mkdirSync(join(runnerTemp, "release-metadata"), { recursive: true });
 writeFileSync(join(runnerTemp, "release-metadata", "metadata.json"), `${JSON.stringify(metadata, null, 2)}\n`, "utf8");
-console.log(`published beta metadata (${releaseState}) to ${metadata.r2.latestMetadataUrl}`);
+console.log(`published beta version metadata (${releaseState}) to ${metadata.r2.versionMetadataUrl}`);
