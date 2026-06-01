@@ -4612,6 +4612,9 @@ export function ProjectView({
           artifactHtml={artifact?.html}
           conversationError={error}
           onRetry={handleRetry}
+          onAuthorizeAndRetry={handleSwitchToAmrAndRetry}
+          onLaunchTerminalAuth={handleLaunchAntigravityOauth}
+          conversationId={activeConversationId}
         />
       </div>
       {projectActionsToast ? (

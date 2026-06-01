@@ -1932,14 +1932,15 @@ export interface Dict {
   'generationPreview.stepUnderstand': string;
   'generationPreview.stepGenerate': string;
   'generationPreview.stepPrepare': string;
-  'generationPreview.elapsed': string;
-  'generationPreview.estimate': string;
-  'generationPreview.progressAria': string;
   'generationPreview.retry': string;
   'generationPreview.awaitingTitle': string;
   'generationPreview.awaitingLead': string;
   'generationPreview.stoppedTitle': string;
   'generationPreview.stoppedLead': string;
+  'generationPreview.reasonAuth': string;
+  'generationPreview.reasonRateLimited': string;
+  'generationPreview.reasonService': string;
+  'generationPreview.reasonBalance': string;
   'designFiles.title': string;
   'designFiles.upload': string;
   'designFiles.pasteText': string;

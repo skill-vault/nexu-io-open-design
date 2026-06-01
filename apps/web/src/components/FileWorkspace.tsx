@@ -59,6 +59,7 @@ import {
   type SketchItem,
 } from './sketch-model';
 import { GenerationPreviewStage } from './GenerationPreviewStage';
+import { AmrGuidance } from './AmrGuidance';
 import { buildGenerationPreviewState } from '../runtime/generation-preview';
 import type { ChatMessage } from '../types';
 
@@ -117,6 +118,13 @@ interface Props {
   artifactHtml?: string | null;
   conversationError?: string | null;
   onRetry?: (message: ChatMessage) => void;
+  // Contextual failure recovery, mirrored from the chat error card so the
+  // preview surface can offer the same one-click fix (AMR authorize, terminal
+  // sign-in) instead of a bare retry.
+  onAuthorizeAndRetry?: (message: ChatMessage) => void;
+  onLaunchTerminalAuth?: () => void;
+  // Conversation id for the AMR promotion-card telemetry payload.
+  conversationId?: string | null;
 }
 
 interface SketchState {
@@ -241,6 +249,9 @@ export function FileWorkspace({
   artifactHtml,
   conversationError,
   onRetry,
+  onAuthorizeAndRetry,
+  onLaunchTerminalAuth,
+  conversationId,
 }: Props) {
   const t = useT();
   const analytics = useAnalytics();
@@ -1009,6 +1020,28 @@ export function FileWorkspace({
               generationPreview.retryTarget && onRetry
                 ? () => onRetry(generationPreview.retryTarget!)
                 : undefined
+            }
+            onAuthorizeAndRetry={
+              generationPreview.retryTarget && onAuthorizeAndRetry
+                ? () => onAuthorizeAndRetry(generationPreview.retryTarget!)
+                : undefined
+            }
+            onLaunchTerminalAuth={onLaunchTerminalAuth}
+            amrGuidance={
+              generationPreview.promoteAmrSwitch
+                && generationPreview.errorCode
+                && generationPreview.retryTarget
+                && onAuthorizeAndRetry ? (
+                <AmrGuidance
+                  errorCode={generationPreview.errorCode}
+                  projectId={projectId}
+                  projectKind={projectKind}
+                  conversationId={conversationId ?? null}
+                  assistantMessageId={generationPreview.retryTarget.id}
+                  runId={generationPreview.retryTarget.runId ?? null}
+                  onActivate={() => onAuthorizeAndRetry(generationPreview.retryTarget!)}
+                />
+              ) : undefined
             }
           />
         ) : activeTab === DESIGN_FILES_TAB ? (
